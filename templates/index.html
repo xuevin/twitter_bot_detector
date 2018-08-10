@@ -69,6 +69,9 @@
                 <a class="page-scroll" href="#algorithms">Implementation</a>
                 </li>
                 <li>
+                <a class="page-scroll" href="#analysis">Analysis</a>
+                </li>
+                <li>
                 <a class="page-scroll" href="#about">About</a>
                 </li>
             </ul>
@@ -98,30 +101,53 @@
 </header>
 
 
-<section>
+
+
+
+
+<!-- Motivation Section -->
+<section id="motivation" class="container content-section text-center">
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2">
+            <h2>Motivation</h2>
+            <p>Social media revolutionizes the spread of news and information in our current society. Given the speed and wealth of content now consumable, individuals are increasingly looking towards social media to form their opinions. Social media platforms like Twitter and Facebook now have huge influence on the economy, politics, and society. Given the potential impacts that social media has on these sectors, there is also an increase in malicious actors who aim to manipulate public opinion for a specific agenda. A political example is demonstrated by the recent identification of Russian-linked Facebook ads during the presidential election. </p>
+
+            <p> As content consumers, we would like to survey an unbiased landscape but this reality is very skewed by the presences of individuals who aim to manipulate public opinions. Given the potential influence of bad actors on social media, it is important to identify these social spammers. </p>
+
+            <a href="#detect" class="btn btn-circle page-scroll">
+                <i class="fa fa-angle-down animated"></i>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+
+
+
+<!-- detect Section -->
+<section id="detect" class="download-section content-section text-center">
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<div class="container">
-
-		<!--<button onclick="start_long_task();">Start Long Calculation</button><br><br>-->
-		<button id="start-bg-job">Start Long Calculation</button><br><br>
-		<div id="progress"></div>
 
 
 <script>
+
+
+
         function start_long_task() {
+
+
             // add task status elements
-            div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
-            $('#progress').append(div);
+
             // create a progress bar
-            var nanobar = new Nanobar({
-                bg: '#44f',
-                target: div[0].childNodes[0]
-            });
+
             // send ajax POST request to start background job
             $.ajax({
                 type: 'POST',
                 url: '/longtask',
+                data: {twitterUser: document.getElementById('twitterUserName').value },
                 success: function(data, status, request) {
                     status_url = request.getResponseHeader('Location');
                     update_progress(status_url, nanobar, div[0]);
@@ -136,14 +162,28 @@
             $.getJSON(status_url, function(data) {
                 // update UI
                 percent = parseInt(data['current'] * 100 / data['total']);
-                nanobar.go(percent);
+                //nanobar.go(percent);
 
-                $(status_div.childNodes[1]).text(percent + '%');
-                $(status_div.childNodes[2]).text(data['status']);
+
+                //$(status_div.childNodes[1]).text(percent + '%');
+                $(status_div.childNodes[1]).text(data['status']);
                 if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
                     if ('result' in data) {
                         // show result
-                        $(status_div.childNodes[3]).text('Result: ' + data['result']);
+                        //$(status_div.childNodes[3]).text('Result: ' + data['result']);
+
+                        userHandle = data['result']
+
+                        nanobar.go(0)
+                        
+                        twitterLink =$('<a href="http://www.twitter.com/'+ userHandle + '" target="_blank">' + userHandle + ' '+ percent + '</a>')
+                        scoredUser = $('<div></div>');
+                        $(scoredUser[0]).append(twitterLink)
+                        //$(scoredUser[0].childNodes[0]).text(userHandle +":" + percent)
+                        $('#recordUsers').append(scoredUser);
+
+
+                        chart.load({columns: [['Probability of Bot', percent]]});
                     }
                     else {
                         // something unexpected happened
@@ -162,69 +202,77 @@
             $('#start-bg-job').click(start_long_task);
         });
     </script>
-</div>
 
 
-
-</section>
-
-
-
-<!-- Motivation Section -->
-<section id="motivation" class="container content-section text-center">
-    <div class="row">
-        <div class="col-lg-8 col-lg-offset-2">
-            <h2>Motivation</h2>
-            <p>Social media revolutionizes the spread of news and information in our current society. Given the speed and wealth of content now consumable, individuals are increasingly looking towards social media to form their opinions. Social media platforms like Twitter and Facebook now have huge influence on the economy, politics, and society. Given the potential impacts that social media has on these sectors, there is also an increase in malicious actors who aim to manipulate public opinion for a specific agenda. A political example is demonstrated by the recent identification of Russian-linked Facebook ads during the presidential election. </p>
-
-            <p> As content consumers, we would like to survey an unbiased landscape but this reality is very skewed by the presences of individuals who aim to manipulate public opinions. Given the potential influence of bad actors on social media, I propose a machine learning project aimed at identifying these social spammers. </p>
-
-            <a href="#detect" class="btn btn-circle page-scroll">
-                <i class="fa fa-angle-down animated"></i>
-            </a>
-
-        </div>
-    </div>
-</section>
-
-
-
-
-<!-- detect Section -->
-<section id="detect" class="content-section text-center">
     <div class="row">
         <div class="container">
             <div class="col-lg-8 col-lg-offset-2">
                 <h2>Test Twitter Handle</h2>
                 <p>Score a user for how botlike their twitter activity is.</p>
 
-
-                <form id='input' method='post' action={{scoreUser}}>       
-                    <p>Twitter Username: <input type='text' name='twitterUserName' placeholder='SolarCollective' /></p>
-
-                    <p><input type="submit" value="Submit" class="btn btn-default btn-lg"></p>
+                <form id='input' method='POST'>       
+                    <p>Twitter Username: <input class='inputTextBox' type='text' id='twitterUserName' name='twitterUserName' value='SolarCollective' /></p>
                 </form>
 
+                
                 <div id="chart">
-
-
+                <script> 
+                $("#input").submit(function(e){
+                    start_long_task();
+                    e.preventDefault();
+                });
+                </script>
                 <script src="/static/js/chart_gauge.js"></script>
-                {{scriptTwitterScore}}
                 </div>
+                
+                <div id="progress" class="col-lg-8 col-lg-offset-2"></div>
 
 
+                <script>
+                // add task status elements
+                 div = $('<div><div></div><p>...</p></div>');
+                 $('#progress').append(div);
+                 // create a progress bar
+                 var nanobar = new Nanobar({
+                    bg: '#44f',
+                    target: div[0].childNodes[0],
+                    id: 'nanoBar'
+                 });
+                </script>
 
+                
+                <button id="start-bg-job" class="btn btn-default btn-lg">Score Twitter User</button><br><br>
+
+                <div id="recordUsers"></div>
+
+ 
                 <a href="#algorithms" class="btn btn-circle page-scroll">
                     <i class="fa fa-angle-down animated"></i>
                 </a>	
+
             </div>
         </div>
     </div>
 </section>
 
-
+</section>
 
 <section id="algorithms" class="container content-section text-center">
+    
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2">
+            <h2>Model</h2>
+            <p><img width=60% src="/static/img/logisticRegression.png"> </p>
+                <p>A logistic regression model was applied to classify real users from fake users. Real and fake users were identified by previous studies that applied honeypot (baiting) tactics and manual human curation.</p>
+        </div>
+    </div>
+    <a href="#analysis" class="btn btn-circle page-scroll">
+            <i class="fa fa-angle-down animated"></i>
+    </a>	
+    </div>
+</section>
+
+<section id="analysis" class="container content-section text-center">
     <div class="row">
         <div id="carousel-example-generic" class="carousel slide" data-interval="false" data-ride="carousel">
             <!-- Indicators -->
@@ -238,37 +286,50 @@
             <!-- Wrapper for slides -->
             <div class="carousel-inner">
                 <div class="item active" style="min-height: 600px;">
-                    <div class="header-text hidden-xs">
+                    <div class="header-text">
                         <div class="col-md-10 col-md-offset-1 text-center">
-                            <h2>Feauture Weights</h2>
-                            <p><img height=600px src="/static/img/model_stats.png">
+                            <h2>Feature Weights</h2>
+                            <p><img width=70% src="/static/img/model_stats.png">
                             </p>
+                            <p> The weights from the logistic regression model are plotted. The number of followers is an important feature for the classification of twitter users. </p>
+                            <p> </p>
+                            <p> </p>
                         </div>
                     </div>
                 </div>
                 <div class="item" style="min-height: 600px;">
-                    <div class="header-text hidden-xs">
+                    <div class="header-text">
                         <div class="col-md-10 col-md-offset-1 text-center">
                             <h2>Cross-Validation</h2>
-                            <p> <img height=600px src="/static/img/cross-validation.png">
-
+                            <p> <img width=70% src="/static/img/cross-validation.png">
                             </p>
+                            <p>Model hyperparameters were explored to find an optimal model. The models achieved high accuracy in cross-validation.</p>
+                            <p> </p>
                         </div>
                     </div>
                 </div>
                 <div class="item" style="min-height: 600px;">
-                    <div class="header-text hidden-xs">
+                    <div class="header-text ">
                         <div class="col-md-10 col-md-offset-1 text-center">
-                            <h2>Restaurant rankings</h2>
-                            <p>
+                            <h2>Extrapolation to more data</h2>
+                            <p> <img width=35% src = "/static/img/confusion_matrix.png">
                             </p>
+                            <p> The final model was used to evaluate a dataset external collected from another study. A balanced set of real and fake users were evaluated (835 in each group). The confusion matrix shows that models can extrapolate to new data.
+                            <p> </p>
+
                         </div>
                     </div>
                 </div>
                 <div class="item" style="min-height: 600px;">
-                    <div class="header-text hidden-xs">
+                    <div class="header-text">
                         <div class="col-md-10  col-md-offset-1 text-center">
-                            <h2>Trend estimation</h2>
+                            <h2>Data Sources</h2>
+                            <p></p><p></p>
+                            <p>Models were trained and tested on datasets referenced below. </p>
+                            <p> </p>
+                            <p>Lee, Kyumin, Brian David Eoff, and James Caverlee. "Seven Months with the Devils: A Long-Term Study of Content Polluters on Twitter." ICWSM. 2011.
+</p>
+<p> Cresci, S., Di Pietro, R., Petrocchi, M., Spognardi, A., and Tesconi, M. (2017, April). The paradigm-shift of social spambots: Evidence, theories, and tools for the arms race. In Proceedings of the 26th International Conference on World Wide Web Companion (pp. 963-972). ACM </p>
                         </div>
                     </div>
                 </div>
@@ -276,6 +337,9 @@
                     <div class="header-text hidden-xs">
                         <div class="col-md-10 col-md-offset-1 text-center">
                             <h2>What's next?</h2>
+                            <p> <img width=50% src = "/static/img/network.png">
+                            </p>
+                            <p> Analysis of Twitter bot networks </p>
                         </div>
                     </div>
                 </div>
@@ -301,7 +365,7 @@
     <div class="row">
         <div class="col-lg-8 col-lg-offset-2">
             <h2>About This App</h2>
-            <p>'Are You My Follower?' is a capstone project implemented by Vincent Xue for The Data Incubator. The webapp applies machine learning to detect whether or not a Twitter user is likely a bot or not. The webapp was built with flask. All machine learning models were implemented with sklearn. </p>
+            <p>'Are You My Follower?' is a capstone project implemented by Vincent Xue for The Data Incubator. The webapp applies machine learning to detect whether or not a Twitter user is likely a bot or not. The webapp was built with flask and celery. All machine learning models were implemented with sklearn. </p>
             <p>Vincent Xue received his Ph.D. from the Massachusetts Institute of Technology in Computational Biology.</p>
 
             <p>Email me to provide some feedback, or give suggestions for the webapp!</p>

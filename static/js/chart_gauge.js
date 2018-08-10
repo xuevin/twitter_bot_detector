@@ -1,7 +1,7 @@
 var chart = c3.generate({
         data: {
                     columns: [
-                ['data', 91.4]
+                ['Probability of Bot', 50]
             ],
             type: 'gauge',
             onclick: function (d, i) { console.log("onclick", d, i); },
@@ -21,7 +21,7 @@ var chart = c3.generate({
             //    width: 39 // for adjusting arc thickness
                 },
             color: {
-                        pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+                        pattern: ['#60b044', '#F6C600', '#F976000','#FF0000'], // the three color levels for the percentage values.
                                 threshold: {
                                     //            unit: 'value', // percentage is default
                                     //            max: 200, // 100 is default
@@ -33,33 +33,8 @@ var chart = c3.generate({
                                     }
 });
 
-setTimeout(function () {
-        chart.load({
-                    columns: [['data', 10]]
-                });
-}, 1000);
-
-setTimeout(function () {
-        chart.load({
-                    columns: [['data', 50]]
-                });
-}, 2000);
-
-setTimeout(function () {
-        chart.load({
-                    columns: [['data', 70]]
-                });
-}, 3000);
-
-setTimeout(function () {
-        chart.load({
-                    columns: [['data', 0]]
-                });
-}, 4000);
-
-setTimeout(function () {
-        chart.load({
-                    columns: [['data', 100]]
-                });
-}, 5000);
-
+//setTimeout(function () {
+//        chart.load({
+//                    columns: [['data', 10]]
+//                });
+//}, 1000);

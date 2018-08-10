@@ -3,6 +3,8 @@ from celery import Celery
 import random 
 import os
 import time
+from TwitterClassifier import *
+
 
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
@@ -14,16 +16,21 @@ celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
 
-@app.route('/')
+@app.route('/', methods=['GET','POST'])
 def index():
-    return render_template('index.html')
+    if (request.method == 'GET'):
+        return render_template('index.html')
+    else:
+        #twitterUserName = request.form['twitterUserName']
+        #task = scoreUser.apply_async(args=[twitterUserName])
+        return redirect(url_for('index'))
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
-@app.route('/scoreUser',methods=['GET','POST'])
-def scoreUser():
+@app.route('/scoreUserPage',methods=['GET','POST'])
+def scoreUserPage():
     if request.method == 'GET':
         return "oops"
     else:
@@ -32,39 +39,38 @@ def scoreUser():
         #executeScript = "<script> chart.load({columns: [['data', 22]]}); </script>"
         #return render_template('index.html',scoreUser=executeScript)
 
-
 @celery.task(bind=True)
-def long_task(self):
-    """Background task that runs a long function with progress reports."""
-    
-    verb = ['Starting up', 'Booting', 'Repairing', 'Loading', 'Checking'] 
-    adjective = ['master', 'radiant', 'silent', 'harmonic', 'fast']
-    noun = ['solar array', 'particle reshaper', 'cosmic ray', 'orbiter', 'bit']
-    message = ''
-    total = random.randint(10, 50)
-    for i in range(total):
-        if not message or random.random() < 0.25:
-            message = '{0} {1} {2}...'.format(random.choice(verb),
-                                              random.choice(adjective),
-                                              random.choice(noun))
-        self.update_state(state='PROGRESS',
-                          meta={'current': i, 'total': total,
-                                'status': message})
-        time.sleep(1)
-   
-    return {'current': 100, 'total': 100, 'status': 'Task completed!',
-            'result': 42}
+def scoreUser(self,userName):
 
+    self.update_state(state='PROGRESS',
+                          meta={'current': 0,
+                                'total': 1,
+                                'status': "Received User"})
+
+    SN,prediction,probs, encodedUser= scoreUsers(getUserDF(userName))
+
+    predictionProb = round(100*probs[0][0],2)
+
+    return {'current': predictionProb,
+            'total': 100,
+            'status': 'Task completed!',
+            'result': userName }
+    
 
 @app.route('/longtask', methods=['POST'])
 def longtask():
-	task = long_task.apply_async()
-	return jsonify({}), 202, {'Location': url_for('taskstatus', task_id=task.id)}
+
+    twitterUserName = "DEFAULT"
+    
+    twitterUserName = request.form['twitterUser']
+    task = scoreUser.apply_async(args=[twitterUserName])
+
+    return jsonify({}), 202, {'Location': url_for('taskstatus', task_id=task.id)}
 
 
 @app.route('/status/<task_id>')
 def taskstatus(task_id):
-    task = long_task.AsyncResult(task_id)
+    task = scoreUser.AsyncResult(task_id)
     if task.state == 'PENDING':
         response = {
             'state': task.state,
